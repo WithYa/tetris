@@ -1,0 +1,117 @@
+*{
+  margin: 0;
+  padding: 0;
+}
+body{
+  margin: 0;
+  padding: 0;
+}
+@bg-color: #4eb8a0;
+@color: #d79b48;
+@ctrl-color: #6a5eab;
+@game-color: #da7712;
+@lump-color: #b96e73;
+@media screen and (max-width: 768px){
+  body,html{
+    width: 100%;
+    height:100%;
+    font-size: 10px;
+  }
+}
+@media screen and (min-width: 768px) and (max-width:992px){
+  body,html{
+    width: 100%;
+    height:100%;
+    font-size: 15px;
+  }
+}
+@media screen and (min-width: 992px){
+  body,html{
+    width: 100%;
+    height:100%;
+    font-size: 15px;
+  }
+}
+/*================================================================*/
+#titlebox{
+  width: 100%;
+  height: 5rem;
+  background: @bg-color;
+  color: @color;
+  display: -webkit-box;
+  margin-bottom: 2rem;
+}
+.score{
+  -webkit-box-flex: 2;
+  text-align: center;
+  font-size: 4rem;
+  height: 5rem;
+  line-height: 5rem;
+}
+.title{
+  -webkit-box-flex: 6;
+  font-size: 4rem;
+  text-align: center;
+  height: 5rem;
+  line-height: 5rem;
+}
+/*=======================================================*/
+#contentbox{
+  width: 100%;
+  height: 72%;
+  color: @color;
+  display: -webkit-box;
+}
+.control{
+  -webkit-box-flex: 3;
+  background-color: @ctrl-color;
+  margin-right: 2rem;
+}
+.gamebox{
+  -webkit-box-flex:6;
+  border: 4px solid @bg-color;
+  height: 100%;
+  box-sizing: border-box;
+}
+.game{
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  border: 0;
+}
+.game tr{
+  width: 100%;
+}
+.game tr td{
+  width: calc(100%/10);
+  height: (100%/15);
+  background: @game-color;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
