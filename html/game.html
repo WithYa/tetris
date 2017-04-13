@@ -224,23 +224,22 @@
                 x = 4;
                 matrix = mold();
             }
-
             //清除前边
             clearPre(matrix);
             y++;
             create(matrix);
         }
         function clearLine(){
-            var y = data.length;
-            var x = data[0].length;
-            var n;
-            for(var i=0;i<y;i++){
-                n = true;
-                for(var j=0;j<x;j++){
-                    if(!data[i][j]){
-                        n = false;
-                    }
-                }
+                    var y = data.length;
+                    var x = data[0].length;
+                    var n;
+                    for(var i=0;i<y;i++){
+                        n = true;
+                        for(var j=0;j<x;j++){
+                            if(!data[i][j]){
+                                n = false;
+                            }
+                        }
                 if(n){
                     data.splice(i,1);
                     data.unshift([].concat(arrl));
@@ -248,9 +247,11 @@
             }
         }
         //检测是否到达地图的底部，或者撞上了其他方块。这个函数返回true说明到底部或者撞上其他方块。
+        //            //判断方块不能向下移动，就停止，弹出结束游戏
         function collideTest(matrix1){
             var len = matrix1.length;
             //判断到底部了。
+
             if(y+len>=data.length){
                 return true;
             }
@@ -263,6 +264,15 @@
                 }
 
                 if(data[y+1+n][x+i]){
+
+
+//    判断游戏停止girl doselfQueen
+                    if(data[2][4]==1||data[2][4]==1){
+                        alert("the game over");
+                        clearInterval(create());
+                        return;
+                    }
+
                     return true;
                 }
             }
@@ -277,8 +287,6 @@
                     if(arr[i][j]){
                         data[i+y][j+x] = 0;
                     }
-
-
                 }
             }
         }
