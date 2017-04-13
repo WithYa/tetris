@@ -32,9 +32,9 @@
         var tetris = {
             canvas : document.getElementById("canvas"),
             ctx : this.canvas.getContext("2d"),
-            width : 700,
+            width : 600,
             height : 1100,
-            logLen: 8,
+            logLen: 20,//显示的行数
             mapColor: "#fff",
             logColor: "black",
             status: 'ready',
@@ -382,47 +382,47 @@
                 ctx.save();
                 ctx.beginPath();
                 ctx.font = "20px Verdana";
-                ctx.fillStyle = "green";
-                ctx.fillText("下一个:", self.width+10, 30);
-                ctx.fillText("分数:", self.width+10, 200);
-                ctx.fillText("速度:", self.width+10, 260);
+                ctx.fillStyle = "#000";
+                ctx.fillText("下一个:", self.width+50, 80);
+                ctx.fillText("分数:", self.width+50, 420);
+                ctx.fillText("速度:", self.width+50, 500);
                 ctx.fillStyle = "red";
-                ctx.fillText(self.score, self.width+10, 230);
-                ctx.fillText(self.speed + "毫秒", self.width+10, 290);
-                ctx.fillStyle = "green";
-                ctx.fillRect(self.width + 30, 320, 100, 40);
-                // isPointInPath对fillRect()兼容不好 又一个大坑！
-                ctx.rect(self.width + 30, 320, 100, 40);
+                ctx.fillText(self.score, self.width+50, 460);
+                ctx.fillText(self.speed + "毫秒", self.width+50, 540);
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(self.width + 50, 320, 100, 40);//按钮
+                // isPointInPath对fillRect()
+                ctx.rect(self.width + 30, 300, 100, 40);
                 if( ev && ctx.isPointInPath(ev.layerX, ev.layerY) ){
                     switch(self.status){
                         case "ready":
                             self.status = "play";
-                            self.curText = "暂停";
-                            self.log = ["开始游戏."];
+                            self.curText = "暂停！";
+                            self.log = ["开始游戏！"];
                             self.createNext().move();
                             break;
                         case "play":
                             self.status = "paush";
                             self.curText = "继续";
                             clearInterval(self.timer);
-                            self.printLog("暂停.");
+                            self.printLog("暂停！");
                             break;
                         case "paush":
                             self.status = "play";
                             self.curText = "暂停";
-                            self.printLog("继续游戏~");
+                            self.printLog("继续");
                             self.move();
                             break;
                         case "over":
                             self.status = "play";
-                            self.curText = "暂停";
+                            self.curText = "暂停！";
                             self.reset().move();
                             self.printLog("开始游戏~");
                             break;
                     }
                 }
                 ctx.fillStyle = "black";
-                ctx.fillText(self.curText, self.width+60, 350);
+                ctx.fillText(self.curText, self.width+80, 350);//开始文字位置
                 ctx.restore();
                 ctx.closePath();
                 self.nextBlock.data.forEach(function(val){
@@ -444,13 +444,13 @@
                 var self = this,
                         ctx = self.ctx;
                 // 清除log
-                ctx.clearRect(self.width+10, 380, 136, 170);
+                ctx.clearRect(self.width+20, 1000, 136, 170);
                 self.log.forEach(function(val, index){
                     if(val){
                         ctx.save();
-                        ctx.font = "16px Verdana";
+                        ctx.font = "20px Verdana";
                         ctx.fillStyle = val.color || self.logColor,
-                                ctx.fillText(val.log || val, self.width+10, 400+index*22);
+                                ctx.fillText(val.log || val, self.width+50, 600+index*20);
                         ctx.restore();
                     }
                 })
