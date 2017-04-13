@@ -2,294 +2,462 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>TetrisGame</title>
+    <title> 俄罗斯方块 </title>
     <link rel="stylesheet/less" type="text/css" href="../css/game.less">
     <script type="text/javascript" src="../js/less.js"></script>
+    <style>
+        #canvas {
+            background-color:#ccc;
+        }
+    </style>
 </head>
+<!--打开页面的同时调用INIT()函数-->
 <body>
     <header id="head" class="head">俄罗斯方块</header>
     <section id="cbox" class="cbox">
         <div class="gamebox" id="gamebox">
-            <canvas class="game" id="canvas"  width="500px" height="1000px">
-            </canvas>
+            <canvas class="game" id="canvas"  width="900" height="1100"></canvas>
         </div>
-            <div class="game">
-            </div>
-            <div class="console">
-                <div class="sign"></div>
-                <div class="ctrl">
-                    <button class="keyss">开始</button>
-                    <button class="keyend">结束游戏</button>
-                    <button class="reset">重置</button>
-                    <p class="scorebox">得分：<span class="score">0</span></p>
-                    <button class="delline">消除行数: <span class="dlnumber">0</span></button>
-                    <button class="grade">等级:<span class="gradenumber">0</span></button>
-                </div>
-            </div>
     </section>
     <footer class="key">
         <div class="lrbox">
-            <button class="left" id="left">←</button>
-            <button class="up" id="up">旋转</button>
-            <button class="right" id="right">→</button>
+            <button class="left" onclick="t.tetrisLeft()">←</button>
+            <button class="rotate" onclick="t.tetrisRotate()">旋转</button>
+            <button class="right" onclick="t.tetrisRight()">→</button>
         </div>
-        <button class="down" id="down">↓</button>
+        <button class="down" onclick="t.tetrisDown()">↓</button>
     </footer>
+
     <script type="text/javascript">
-        //获取到当前状态下的游戏界面盒子的宽度及高度
-//        var gamewidth = document.getElementById("gamebox").width;
-//        var gameheight = document.getElementById("gamebox").height;
-        //获取到创建画布的元素
-        var canvas = document.getElementById("canvas");
-//        canvas.width=gamewidth;
-//        canvas.height=gameheight;
-        //创建2d绘图环境
-        var gc = canvas.getContext("2d");
-        //填充颜色
-//        gc.fillStyle = "#ccc";
-        //创建数据
-        function map(r,c) {
-            var data = [];
-
-            for(var i = 0;i < r;i++){
-                data.push([]);
-                for(var j = 0; j<c;j++){
-                    data[i].push(0);
-                }
-            }
-            return data;
-        }
-        //创建图形
-        var data = map(20,12);
-        //创建方块
-        function render(data,gc) {
-            //设置块的宽和高
-            var w = 500/12;
-            var h = 1000/20;
-            var rLen = data.length;
-            var cLen =data[0].length;
-            for(var i = 0; i< rLen;i++){
-                for(var j = 0; j<cLen;j++){
-                    gc.fillStyle=data[i][j]==0?'#ccc':'#3BCCC9';
-                    gc.fillRect(j*w,i*h,w,h);
-                }
-            }
-        }
-        render(data,gc);
-        //方块数据
-        var arr=[
-            [[1,1,1,1]],
-            [[1,1],[1,1]],
-            [[1,1,0],[0,1,1]],
-            [[0,1,1],[1,1,0]],
-            [[0,1,0],[1,1,1]],
-            [[1,0,0],[1,1,1]],
-            [[0,0,1],[1,1,1]]
-        ];
-        var y=0;
-        var x=4;
-        //随机一个方块数据
-        function mold() {
-            var num = Math.floor(Math.random()*7);
-            return arr[num];
-        }
-        //创建方块
-        function create(arr) {
-            for(var i = 0;i < arr.length;i++){
-                for(var j=0;j<arr[i].length;j++){
-                    if(!data[i+y][j+x]){
-                        data[i+y][j+x]=arr[i][j];
+        var tetris = {
+            canvas : document.getElementById("canvas"),
+            ctx : this.canvas.getContext("2d"),
+            width : 700,
+            height : 1100,
+            logLen: 8,
+            mapColor: "#fff",
+            logColor: "black",
+            status: 'ready',
+            unit : 50,
+            curText : "开始",
+            blockData : function(index, row, col){
+                var r = row || 1,
+                        c = col || Math.floor((this.col - 3)/2) + 2,
+                        block = [
+                            [
+                                {color: 'olive', status: 1, data: [{x: r, y:c-1}, {x: r+1, y:c-1}, {x: r+1, y:c}, {x: r+1, y:c+1}], center: {x: r, y: c}},
+                                {color: 'olive', status: 2, data: [{x: r-1, y:c-1}, {x: r-1, y:c}, {x: r, y:c-1}, {x: r+1, y:c-1}], center: {x: r, y: c}},
+                                {color: 'olive', status: 3, data: [{x: r-1, y:c-1}, {x: r-1, y:c}, {x: r-1, y:c+1}, {x: r, y:c+1}], center: {x: r, y: c}},
+                                {color: 'olive', status: 4, data: [{x: r-1, y:c+1}, {x: r, y:c+1}, {x: r+1, y:c+1}, {x: r+1, y:c}], center: {x: r, y: c}}
+                            ],
+                            [
+                                {color: 'chocolate', status: 1, center: {x: r, y:c}, data: [{x: r, y:c+1}, {x: r+1, y:c-1}, {x: r+1, y:c}, {x: r+1, y:c+1}]},
+                                {color: 'chocolate', status: 2, center: {x: r, y:c}, data: [{x: r-1, y:c-1}, {x: r, y:c-1}, {x: r+1, y:c-1}, {x: r+1, y:c}]},
+                                {color: 'chocolate', status: 3, center: {x: r, y:c}, data: [{x: r, y:c-1}, {x: r-1, y:c-1}, {x: r-1, y:c}, {x: r-1, y:c+1}]},
+                                {color: 'chocolate', status: 4, center: {x: r, y:c}, data: [{x: r-1, y:c}, {x: r-1, y:c+1}, {x: r, y:c+1}, {x: r+1, y:c+1}]}
+                            ],
+                            [
+                                {color: 'firebrick', status: 1, center: {x: r, y:c}, data: [{x: r, y:c-1}, {x: r, y:c}, {x: r+1, y:c}, {x: r+1, y:c+1}]},
+                                {color: 'firebrick', status: 2, center: {x: r, y:c}, data: [{x: r+1, y:c-1}, {x: r, y:c-1}, {x: r, y:c}, {x: r-1, y:c}]}
+                            ],
+                            [
+                                {color: 'orange', status: 1, center: {x: r, y:c}, data: [{x: r+1, y:c-1}, {x: r+1, y:c}, {x: r, y:c}, {x: r, y:c+1}]},
+                                {color: 'orange', status: 2, center: {x: r, y:c}, data: [{x: r-1, y:c}, {x: r, y:c}, {x: r, y:c+1}, {x: r+1, y:c+1}]}
+                            ],
+                            [
+                                {color: 'Sienna', status: 1, center: {x: r, y:c}, data: [{x: r, y:c-1}, {x: r, y:c}, {x: r+1, y:c-1}, {x: r+1, y:c}]}
+                            ],
+                            [
+                                {color: 'aqua', status: 1, center: {x: r, y:c}, data: [{x: r, y:c-1}, {x: r, y:c}, {x: r, y:c+1}, {x: r-1, y:c}]},
+                                {color: 'aqua', status: 2, center: {x: r, y:c}, data: [{x: r+1, y:c}, {x: r, y:c}, {x: r, y:c+1}, {x: r-1, y:c}]},
+                                {color: 'aqua', status: 3, center: {x: r, y:c}, data: [{x: r, y:c-1}, {x: r, y:c}, {x: r, y:c+1}, {x: r+1, y:c}]},
+                                {color: 'aqua', status: 4, center: {x: r, y:c}, data: [{x: r, y:c-1}, {x: r, y:c}, {x: r+1, y:c}, {x: r-1, y:c}]}
+                            ],
+                            [
+                                {color: 'pink', status: 1, center: {x: r, y:c}, data: [{x: r, y:c-1}, {x: r, y:c}, {x: r, y:c+1}, {x: r, y:c+2}]},
+                                {color: 'pink', status: 2, center: {x: r, y:c}, data: [{x: r-2, y:c}, {x: r-1, y:c}, {x: r, y:c}, {x: r+1, y:c}]}
+                            ]
+                        ]
+                return block[index];
+            },
+            init : function(){
+                var self = this;
+                self.reset();
+                self.addEvent("keydown", window, function(ev){
+                    var ev = ev || window.event,
+                            code = ev.keycode || ev.which;
+                    if(self.handle[code] && self.status === "play"){
+                        self.handle[code].call(self);
+                        self.createMap();
+                        ev.preventDefault();
                     }
+                })
+                self.addEvent("click", document, function(ev){
+                    self.createMap(ev);
+                })
+                return this;
+            },
+            reset: function(){
+                var self = this;
+                self.score = 0;
+                self.speed = 1000;
+                self.log = [];
+                self.historyBlock = [];
+                self.row = Math.floor(self.height/self.unit);
+                self.col = Math.floor(self.width/self.unit);
+                self.curBlockIndex = Math.round(Math.random()*6);
+                self.curBlocks = self.blockData(self.curBlockIndex);
+                self.curBlock = self.curBlocks[0];
+                self.createNext().createMap();
+                return this;
+            },
+            createNext: function(){
+                var self = this;
+                self.nextBlockIndex = self.status === "ready" ? self.curBlockIndex : Math.round(Math.random()*6);
+                self.nextBlocks = self.blockData(self.nextBlockIndex, 4, self.col+3);
+                self.nextBlock = self.nextBlocks[0];
+                return this;
+            },
+            addEvent : function(ev, ele, callback){
+                if( ele.addEventListener ){
+                    ele.addEventListener(ev,callback,false);
+                }else{
+                    ele.attachEvent("on"+ev, callback);
                 }
-            }
-            render(data,gc);
-        }
-        //matrix 保存随机出来的方块，这样在运动中就可以一直使用同一个方块了。
-        var matrix = mold();
-        var timer = null;
-        var onOff =false;
-        var arrl=[];
-        for(var i=0;i<12;i++){
-            arrl.push(0);
-        }
-        create(matrix);
-//        移动
-        auto(400);
-        play();
-        function auto(time) {
-            timer = setInterval(function () {
-                fall();
-            },time);
-        }
-        function rotate(){
-            var arr = [];
-            var y = matrix.length;
-            var x = matrix[0].length;
-            //把arr变成一个二维数组。
-            for(var i=0;i<x;i++){
-                arr.push([]);
-            }
-
-            for(var i=0;i<y;i++){
-                for(var j=0;j<x;j++){
-                    arr[j][y-1-i] = matrix[i][j]
+            },
+            createMap : function(ev){
+                var self = this,
+                        ctx = self.ctx;
+                ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
+                for (var i = 0; i < self.col; i++) {
+                    for (var j = 0; j < self.row; j++) {
+                        ctx.save();
+                        ctx.strokeStyle = self.mapColor;
+                        ctx.strokeRect(i*self.unit, j*self.unit, self.unit, self.unit);
+                        ctx.stroke();
+                        ctx.restore();
+                    };
+                };
+                self.showText(ev).createBlock().createLog();
+                if(self.status !== "ready"){
+                    self.drawRect(self.curBlock.data);
                 }
-            }
-            if(collideTestX(1,arr)||collideTestX(-1,arr)||collideTest(arr)){
-                return;
-            }
-            matrix = arr;
-
-        }
-        function play(){
-            document.onkeydown = function(ev){
-
-                switch(ev.keyCode){
-                    case 37://向左移动
-
-                        clearPre(matrix);
-                        if(!collideTestX(-1,matrix)){
-                            x--;
+                return this;
+            },
+            createBlock : function(){
+                var self = this,
+                        block = self.curBlock.data;
+                self.drawRect(self.historyBlock);
+                if(self.collide(40, true)){
+                    block.map(function(val){
+                        val.x--;
+                    })
+                    setTimeout(function(){
+                        clearInterval(self.timer);
+                        if(localStorage.getItem("score") === null){
+                            localStorage.setItem("score", self.score);
+                        }else if(localStorage.getItem("score") - self.score < 0 ){
+                            localStorage.setItem("score", self.score);
+                            alert("新纪录！"+self.score+"分！");
+                            self.printLog({log:"新纪录！"+self.score+"分！", color: 'red'});
+                            return;
                         }
-
-                        create(matrix);
-                        break;
-                    case 39://向右移动
-                        clearPre(matrix);
-                        if(!collideTestX(1,matrix)){
-                            x++;
-                        }
-                        create(matrix);
-                        break;
-                    case 38://方块变形
-                        clearPre(matrix);
-                        rotate(matrix);
-                        create(matrix);
-                        break;
-                    case 40://加速向下移动。
-                        if(onOff)return;
-                        onOff = true;
-                        clearInterval(timer);
-                        auto(100);
-                        break;
+                        self.status = "over";
+                        self.curText = "重来";
+                        self.showText();
+                        self.printLog({log:"GAME OVER", color: 'red'});
+                    },10)
                 }
-            };
-            document.onkeyup = function(ev){
-                if(ev.keyCode == 40){
-                    onOff = false;
-                    clearInterval(timer);
-                    auto(400);
-                }
-            };
-        }
-        //左右移动的过程中，如果碰撞了边缘或者碰撞其他方块就返回true，否则false
-        function collideTestX(n,matrix1){
-            //n是负1就是向左，1是向右；
-            var maxX = data[0].length - matrix1[0].length;
-            //碰到边界
-            if(x+n<0||x+n>maxX){
-                return true;
-            }
-            //检测左右移动时是否碰到方块。
-            if(n<0){
-
-                for(var i=0;i<matrix1.length;i++){
-                    var index = 0;
-                    while(!matrix1[i][index]){
-                        index++;
+                return this;
+            },
+            drawRect : function(block){
+                var self = this;
+                for (var i = 0; i < block.length; i++) {
+                    self.ctx.save();
+                    self.ctx.fillStyle = block[i].color || self.curBlock.color;
+                    self.ctx.strokeStyle = self.mapColor;
+                    self.ctx.fillRect((block[i].y - 1)*self.unit, (block[i].x - 1)*self.unit, self.unit, self.unit );
+                    self.ctx.strokeRect((block[i].y - 1)*self.unit, (block[i].x - 1)*self.unit, self.unit, self.unit );
+                    self.ctx.restore();
+                };
+            },
+            move : function(){
+                var self = this;
+                clearInterval(self.timer);
+                self.timer = setInterval(function(){
+                    // 实时刷新数据
+                    var curBlock = self.curBlock,
+                            data = self.curBlock.data;
+                    if( self.collide() || data.some(function(val){
+                                return val.x + 1 > self.row;
+                            }) ){
+                        clearInterval(self.timer);
+                        self.historyBlock.push.apply(self.historyBlock, data.map(function(val){
+                            val.color = curBlock.color;
+                            return val;
+                        }));
+                        self.remove();
+                        self.curBlockIndex = self.nextBlockIndex;
+                        self.curBlocks = self.blockData(self.curBlockIndex);
+                        self.curBlock = self.curBlocks[0];
+                        self.createNext().createMap().move();
+                        return false;
                     }
-                    if(!data[i+y]||data[i+y][x+index-1]){
-                        return true;
+                    for (var i = 0; i < data.length; i++) {
+                        data[i].x++;
+                    };
+                    self.curBlock.center.x++;
+                    self.createMap();
+                }, self.speed)
+                return this;
+            },
+            remove : function(){
+                var self = this,
+                        count = {},
+                        n = 0,
+                        maxRow = 0,
+                        delArr = [],
+                        block = self.historyBlock;
+                for (var i = 0; i < block.length; i++) {
+                    if(count[block[i].x]){
+                        count[block[i].x].length += 1;
+                    }else{
+                        count[block[i].x] = [1];
                     }
-                }
-            }else{
-                for(var i=0;i<matrix1.length;i++){
-                    var index = matrix1[0].length;
-                    while(!matrix1[i][index]){
-                        index--;
-                    }
-                    if(!data[i+y]||data[i+y][x+index+1]){
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        //移动
-        function fall(){
-            //判断当方块移动到底部的时候就停下，从新生成一个新的方块从顶部开始下移。
-            if(collideTest(matrix)){
-                clearLine();
-                y = 0;
-                x = 4;
-                matrix = mold();
-            }
-            //清除前边
-            clearPre(matrix);
-            y++;
-            create(matrix);
-        }
-        function clearLine(){
-                    var y = data.length;
-                    var x = data[0].length;
-                    var n;
-                    for(var i=0;i<y;i++){
-                        n = true;
-                        for(var j=0;j<x;j++){
-                            if(!data[i][j]){
-                                n = false;
+                };
+                console.log( count )
+                for (var attr in count) {
+                    if(count[attr].length === self.col){
+                        n++;
+                        //maxRow = attr > maxRow ? attr : maxRow;
+                        for (var i = 0; i < block.length; i++) {
+                            if(block[i].x == attr){
+                                delArr = block.splice(i, 1);
+                                i--;
                             }
-                        }
-                if(n){
-                    data.splice(i,1);
-                    data.unshift([].concat(arrl));
-                }
-            }
-        }
-        //检测是否到达地图的底部，或者撞上了其他方块。这个函数返回true说明到底部或者撞上其他方块。
-        //            //判断方块不能向下移动，就停止，弹出结束游戏
-        function collideTest(matrix1){
-            var len = matrix1.length;
-            //判断到底部了。
-
-            if(y+len>=data.length){
-                return true;
-            }
-            var arr = matrix1[len-1];
-            var n;
-            for(var i=0;i<arr.length;i++){
-                n = len-1;
-                while(!matrix1[n][i]){
-                    n--;
-                }
-
-                if(data[y+1+n][x+i]){
-
-
-//    判断游戏停止girl doselfQueen
-                    if(data[2][4]==1||data[2][4]==1){
-                        alert("the game over");
-                        clearInterval(create());
-                        return;
+                        };
+                        count[attr].length = 0;
+                        block.forEach(function(val){
+                            val.x < attr && (val.x += 1);
+                        })
                     }
-
-                    return true;
+                };
+                // 边消除边下降会死循环
+                if(n > 0){
+                    self.score += n*100;
+                    self.printLog("得分+"+n*100);
+                    // 一次消除3行奖励100分
+                    if(n === 3){
+                        self.score += 100;
+                        self.printLog("奖励"+100+"分~");
+                    }
+                    // 一次消除4行奖励200分
+                    if(n === 4){
+                        self.score += 200;
+                        self.printLog("奖励"+200+"分~");
+                    }
+                    /*block.forEach(function(val){
+                     val.x < maxRow && (val.x += n);
+                     })*/
+                    self.changeSpeed();
                 }
-            }
-            return false;
-        }
-
-        //在移动中清除前边的方块
-        function clearPre(arr){
-            for(var i = 0;i < arr.length;i++){
-
-                for(var j = 0;j < arr[i].length;j++){
-                    if(arr[i][j]){
-                        data[i+y][j+x] = 0;
+            },
+            changeSpeed: function(){
+                var self = this;
+                if( self.score >= 3000 && self.score < 5000 ){
+                    self.speed = 800;
+                }else if( self.score >= 5000 && self.score < 10000 ){
+                    self.speed = 600;
+                    self.score += 100;
+                }else if( self.score >= 10000 && self.score < 20000 ){
+                    self.speed = 400;
+                    self.score += 150;
+                }else if( self.score >= 20000 && self.score < 40000 ){
+                    self.speed = 200;
+                    self.score += 200;
+                }else if( self.score >= 40000 ){
+                    self.speed = 100;
+                    self.score += 300;
+                }
+                return this;
+            },
+            collide : function(direction, isCreate){
+                var block = JSON.parse(JSON.stringify(this.curBlock)),
+                        result = false,
+                        self = this;
+                direction = direction || 40;
+                // direction:碰撞方向，默认下方
+                if(direction === 37){
+                    self.mLeft(block);
+                }else if(direction === 38){
+                    block = self.distortion(block);
+                }else if(direction === 39){
+                    self.mRight(block);
+                }else if(direction === 40 && !isCreate){
+                    // 非新增方块则往下移动一格
+                    block.data.forEach(function(val){
+                        val.x++;
+                    })
+                }
+                result = block.data.some(function(val){
+                    return (val.x > self.row || val.y < 1 || val.y > self.col);
+                })
+                if(result){
+                    return result;
+                }else{
+                    return block.data.some(function(val){
+                        return self.historyBlock.some(function(value){
+                            return (value.x === val.x && value.y === val.y);
+                        })
+                    })
+                }
+            },
+            mLeft : function(block){
+                if(block.data.every(function(val){
+                            return val.y - 1 >= 1;
+                        })){
+                    block.data.forEach(function(val){
+                        val.y--;
+                    })
+                    block.center.y--;
+                }
+            },
+            mRight : function(block){
+                var self = this;
+                if(block.data.every(function(val){
+                            return val.y + 1 <= self.col;
+                        })){
+                    block.data.forEach(function(val){
+                        val.y++;
+                    })
+                    block.center.y++;
+                }
+            },
+            distortion : function(block){
+                var self = this,
+                        curRow = block.center.x,
+                        curCol = block.center.y,
+                        status = block.status + 1 > self.curBlocks.length ? 1 : block.status + 1;
+                self.curBlocks = self.blockData(self.curBlockIndex, block.center.x, block.center.y);
+                return self.curBlocks[status-1];
+            },
+            // 控制：上（变形）、右（右移）、下（下移）、左（左移）
+            handle : {
+                // 左键 code 37
+                37: function(){
+                    var self = this;
+                    if(!self.collide(37)){
+                        self.mLeft(self.curBlock);
+                    }
+                },
+                // 上键 code 38
+                38: function(){
+                    var self = this;
+                    if(!self.collide(38)){
+                        self.curBlock = self.distortion(self.curBlock);
+                    }
+                },
+                // 右键 code 39
+                39: function(){
+                    var self = this;
+                    if(!self.collide(39)){
+                        self.mRight(self.curBlock);
+                    }
+                },
+                // 下键 code 40
+                40: function(){
+                    var self = this;
+                    if(!self.collide()){
+                        self.curBlock.data.forEach(function(val){
+                            val.x++;
+                        })
+                        self.curBlock.center.x++;
                     }
                 }
+            },
+            showText: function(ev){
+                var self = this,
+                        ctx = self.ctx;
+                ctx.clearRect(self.width, 0, self.canvas.width - self.width, self.height);
+                ctx.save();
+                ctx.beginPath();
+                ctx.font = "20px Verdana";
+                ctx.fillStyle = "green";
+                ctx.fillText("下一个:", self.width+10, 30);
+                ctx.fillText("分数:", self.width+10, 200);
+                ctx.fillText("速度:", self.width+10, 260);
+                ctx.fillStyle = "red";
+                ctx.fillText(self.score, self.width+10, 230);
+                ctx.fillText(self.speed + "毫秒", self.width+10, 290);
+                ctx.fillStyle = "green";
+                ctx.fillRect(self.width + 30, 320, 100, 40);
+                // isPointInPath对fillRect()兼容不好 又一个大坑！
+                ctx.rect(self.width + 30, 320, 100, 40);
+                if( ev && ctx.isPointInPath(ev.layerX, ev.layerY) ){
+                    switch(self.status){
+                        case "ready":
+                            self.status = "play";
+                            self.curText = "暂停";
+                            self.log = ["开始游戏."];
+                            self.createNext().move();
+                            break;
+                        case "play":
+                            self.status = "paush";
+                            self.curText = "继续";
+                            clearInterval(self.timer);
+                            self.printLog("暂停.");
+                            break;
+                        case "paush":
+                            self.status = "play";
+                            self.curText = "暂停";
+                            self.printLog("继续游戏~");
+                            self.move();
+                            break;
+                        case "over":
+                            self.status = "play";
+                            self.curText = "暂停";
+                            self.reset().move();
+                            self.printLog("开始游戏~");
+                            break;
+                    }
+                }
+                ctx.fillStyle = "black";
+                ctx.fillText(self.curText, self.width+60, 350);
+                ctx.restore();
+                ctx.closePath();
+                self.nextBlock.data.forEach(function(val){
+                    val.color = self.nextBlock.color;
+                })
+                self.drawRect(self.nextBlock.data);
+                return this;
+            },
+            printLog: function(log){
+                var self = this;
+                if(log){
+                    self.log.unshift(log);
+                    self.log.length > self.logLen && (self.log.length = self.logLen);
+                }
+                self.createLog();
+                return this;
+            },
+            createLog: function(){
+                var self = this,
+                        ctx = self.ctx;
+                // 清除log
+                ctx.clearRect(self.width+10, 380, 136, 170);
+                self.log.forEach(function(val, index){
+                    if(val){
+                        ctx.save();
+                        ctx.font = "16px Verdana";
+                        ctx.fillStyle = val.color || self.logColor,
+                                ctx.fillText(val.log || val, self.width+10, 400+index*22);
+                        ctx.restore();
+                    }
+                })
+                return this;
             }
         }
+        tetris.init();
     </script>
 </body>
 </html>
