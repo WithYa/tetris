@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>TetrisGame</title>
     <link rel="stylesheet/less" type="text/css" href="../css/game.less">
     <script type="text/javascript" src="../js/less.js"></script>
 </head>
@@ -10,9 +10,11 @@
     <header id="head" class="head">俄罗斯方块</header>
     <section id="cbox" class="cbox">
         <div class="gamebox" id="gamebox">
-            <canvas class="game" id="canvas"  width="500px" height="700px">
+            <canvas class="game" id="canvas"  width="500px" height="1000px">
             </canvas>
         </div>
+            <div class="game">
+            </div>
             <div class="console">
                 <div class="sign"></div>
                 <div class="ctrl">
@@ -27,11 +29,11 @@
     </section>
     <footer class="key">
         <div class="lrbox">
-            <button class="left">←</button>
-            <button class="up">旋转</button>
-            <button class="right">→</button>
+            <button class="left" id="left">←</button>
+            <button class="up" id="up">旋转</button>
+            <button class="right" id="right">→</button>
         </div>
-        <button class="down">↓</button>
+        <button class="down" id="down">↓</button>
     </footer>
     <script type="text/javascript">
         //获取到当前状态下的游戏界面盒子的宽度及高度
@@ -58,12 +60,12 @@
             return data;
         }
         //创建图形
-        var data = map(12,12);
+        var data = map(20,12);
         //创建方块
         function render(data,gc) {
             //设置块的宽和高
             var w = 500/12;
-            var h = 700/12;
+            var h = 1000/20;
             console.log(w);
             var rLen = data.length;
             var cLen =data[0].length;
@@ -112,6 +114,175 @@
             arrl.push(0);
         }
         create(matrix);
+//        移动
+        auto(400);
+        play();
+        function auto(time) {
+            timer = setInterval(function () {
+                fall();
+            },time);
+        }
+        function rotate(){
+            var arr = [];
+            var y = matrix.length;
+            var x = matrix[0].length;
+            //把arr变成一个二维数组。
+            for(var i=0;i<x;i++){
+                arr.push([]);
+            }
+
+            for(var i=0;i<y;i++){
+                for(var j=0;j<x;j++){
+                    arr[j][y-1-i] = matrix[i][j]
+                }
+            }
+            if(collideTestX(1,arr)||collideTestX(-1,arr)||collideTest(arr)){
+                return;
+            }
+            matrix = arr;
+
+        }
+        function play(){
+            document.onkeydown = function(ev){
+
+                switch(ev.keyCode){
+                    case 37://向左移动
+
+                        clearPre(matrix);
+                        if(!collideTestX(-1,matrix)){
+                            x--;
+                        }
+
+                        create(matrix);
+                        break;
+                    case 39://向右移动
+                        clearPre(matrix);
+                        if(!collideTestX(1,matrix)){
+                            x++;
+                        }
+                        create(matrix);
+                        break;
+                    case 38://方块变形
+                        clearPre(matrix);
+                        rotate(matrix);
+                        create(matrix);
+                        break;
+                    case 40://加速向下移动。
+                        if(onOff)return;
+                        onOff = true;
+                        clearInterval(timer);
+                        auto(100);
+                        break;
+                }
+            };
+            document.onkeyup = function(ev){
+                if(ev.keyCode == 40){
+                    onOff = false;
+                    clearInterval(timer);
+                    auto(400);
+                }
+            };
+        }
+        //左右移动的过程中，如果碰撞了边缘或者碰撞其他方块就返回true，否则false
+        function collideTestX(n,matrix1){
+            //n是负1就是向左，1是向右；
+            var maxX = data[0].length - matrix1[0].length;
+            //碰到边界
+            if(x+n<0||x+n>maxX){
+                return true;
+            }
+            //检测左右移动时是否碰到方块。
+            if(n<0){
+
+                for(var i=0;i<matrix1.length;i++){
+                    var index = 0;
+                    while(!matrix1[i][index]){
+                        index++;
+                    }
+                    if(!data[i+y]||data[i+y][x+index-1]){
+                        return true;
+                    }
+                }
+            }else{
+                for(var i=0;i<matrix1.length;i++){
+                    var index = matrix1[0].length;
+                    while(!matrix1[i][index]){
+                        index--;
+                    }
+                    if(!data[i+y]||data[i+y][x+index+1]){
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        //移动
+        function fall(){
+            //判断当方块移动到底部的时候就停下，从新生成一个新的方块从顶部开始下移。
+            if(collideTest(matrix)){
+                clearLine();
+                y = 0;
+                x = 4;
+                matrix = mold();
+            }
+
+            //清除前边
+            clearPre(matrix);
+            y++;
+            create(matrix);
+        }
+        function clearLine(){
+            var y = data.length;
+            var x = data[0].length;
+            var n;
+            for(var i=0;i<y;i++){
+                n = true;
+                for(var j=0;j<x;j++){
+                    if(!data[i][j]){
+                        n = false;
+                    }
+                }
+                if(n){
+                    data.splice(i,1);
+                    data.unshift([].concat(arrl));
+                }
+            }
+        }
+        //检测是否到达地图的底部，或者撞上了其他方块。这个函数返回true说明到底部或者撞上其他方块。
+        function collideTest(matrix1){
+            var len = matrix1.length;
+            //判断到底部了。
+            if(y+len>=data.length){
+                return true;
+            }
+            var arr = matrix1[len-1];
+            var n;
+            for(var i=0;i<arr.length;i++){
+                n = len-1;
+                while(!matrix1[n][i]){
+                    n--;
+                }
+
+                if(data[y+1+n][x+i]){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        //在移动中清除前边的方块
+        function clearPre(arr){
+            for(var i = 0;i < arr.length;i++){
+
+                for(var j = 0;j < arr[i].length;j++){
+                    if(arr[i][j]){
+                        data[i+y][j+x] = 0;
+                    }
+
+
+                }
+            }
+        }
     </script>
 </body>
 </html>
