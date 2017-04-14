@@ -1,6 +1,11 @@
 *{
   margin: 0;
   padding: 0;
+  font-family: "方正粗圆_GBK";
+}
+body {
+  background: url("../img/bg1.png") no-repeat;
+  background-size:100%;
 }
 a{
   text-decoration: none;
@@ -14,6 +19,7 @@ ol{
 @font-color:#666;
 @border-color: #bbbbbb;
 @xuanzhuan: #dadada;
+@footer-color: red;
 @radius:0.5rem;
 @bg-color: #ffffff;
 @media screen and (max-width: 768px){
@@ -48,13 +54,10 @@ ol{
   color: @font-color;
   margin-bottom: 1.5rem;
 }
-#canvas {
-  border-radius: @radius;
-}
 .cbox{
   width: 98%;
   margin: 0 auto;
-  height: 65%;
+  height: 70%;
   display: -webkit-box;
   border: 0.2rem solid @border-color;
   border-radius: @radius;
@@ -65,13 +68,16 @@ ol{
   //border-right: 0.2rem solid @border-color;
   position: relative;
 }
-.game{
-  position: absolute;
-  left: 0;
-  right:0;
-  top:0;
-  bottom:0;
-  margin: auto;
+.play{
+  outline: none;
+  background: @xuanzhuan;
+  font-size:2rem;
+  color: @font-color;
+  padding: 1rem 1rem ;
+  border: 0.1rem solid @border-color;
+  border-radius: @radius;
+  margin: 0 auto;
+  margin-top: 35%;
 }
 /*=====================================================================*/
 .console{
@@ -105,26 +111,16 @@ button{
 }
 .lrbox{
   overflow: hidden;
-  width: 50%;
+  width: 90%;
   margin: 0 auto;
 }
-.left{
+.lrbox li {
   float: left;
-}
-.rotate{
-  float: left;
-  outline: none;
   background: @xuanzhuan;
-  font-size:2rem;
-  color: @font-color;
-  padding: 1rem 1rem ;
+  //font-size:1.5rem;
+  padding: 2rem 2rem ;
   border: 0.1rem solid @border-color;
   border-radius: @radius;
-  margin: 0 2rem;
-}
-.right{
-  float: right;
-}
-.down{
-  padding: 0.3rem 2rem;
+  color: @footer-color;
+  margin-right: 2rem;
 }
