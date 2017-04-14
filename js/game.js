@@ -47,13 +47,11 @@
     ];
     //定义当前的方块数据
     var matrix = mold();
-
     //随机一个方块数据
     function mold() {
         var num = Math.floor(Math.random()*7);
         return arr[num];
     }
-    //创建方块
     //方块出现的位置
     var y=0;
     var x=4;
@@ -69,9 +67,8 @@
         render(data,gc);
     }
     //matrix 保存随机出来的方块，这样在运动中就可以一直使用同一个方块了。
-    //创建随机出来的方块
-    // create(matrix);
-    //暂时不知道
+
+    //先定义一个变量，使他成为全局的，在之后定义它为一个定时器
     var timer = null;
     var onOff =false;
 
@@ -80,12 +77,13 @@
     for(var i=0;i<12;i++){
         arrl.push(0);
     }
-
+    //定时器
     function auto(time) {
         timer = setInterval(function () {
             fall();
         },time);
     }
+    //旋转当前的动画
     function rotate(){
         var arr = [];
         var y = matrix.length;
@@ -106,6 +104,7 @@
         matrix = arr;
 
     }
+    //鼠标方向键事件
     function play(){
         document.onkeydown = function(ev){
 
@@ -147,7 +146,8 @@
             }
         };
     }
-    //左右移动的过程中，如果碰撞了边缘或者碰撞其他方块就返回true，否则false
+    /*左右移动的过程中，如果碰撞了边缘或者碰撞其他方块就返回true，否则false
+    监测左右移动事件*/
     function collideTestX(n,matrix1){
         //n是负1就是向左，1是向右；
         var maxX = data[0].length - matrix1[0].length;
@@ -180,7 +180,7 @@
         }
         return false;
     }
-    //移动
+    //监测是否到达底部
     function fall(){
         //判断当方块移动到底部的时候就停下，从新生成一个新的方块从顶部开始下移。
         if(collideTest(matrix)){
@@ -194,6 +194,8 @@
         y++;
         create(matrix);
     }
+    var dline=0;
+    //监测每一行，如果该行填充满则清楚该行
     function clearLine(){
         var y = data.length;
         var x = data[0].length;
@@ -206,8 +208,11 @@
                 }
             }
             if(n){
+                dline++;
                 data.splice(i,1);
                 data.unshift([].concat(arrl));
+                dlnumber.innerText = dline;
+                score.innerText=dline*10;
             }
         }
     }
@@ -239,7 +244,6 @@
         }
         return false;
     }
-
     //在移动中清除前边的方块
     function clearPre(arr){
         for(var i = 0;i < arr.length;i++){
@@ -275,6 +279,9 @@
     },false);
     //结束
     var keyend = document.getElementById("keyend");
+    keyend.addEventListener("click",function () {
+
+    },false);
     //重置
     var reset = document.getElementById("reset");
     //得分
@@ -283,3 +290,42 @@
     var dlnumber = document.getElementById("dlnumber");
     //等级
     var gradenumber = document.getElementById("gradenumber");
+
+
+
+
+    //上旋转
+    var up = document.getElementById("up");
+    up.addEventListener("click",function () {
+        clearPre(matrix);
+        rotate(matrix);
+        create(matrix);
+    },false);
+    //下加速
+    //加速机制有问题
+    var down = document.getElementById("down");
+    down.addEventListener("click",function () {
+        // if(onOff)return;
+        // onOff = true;
+        // clearInterval(timer);
+        // auto(100);
+    },false);
+    //左移动
+    var left = document.getElementById("left");
+    left.addEventListener("click",function () {
+        clearPre(matrix);
+        if(!collideTestX(-1,matrix)){
+            x--;
+        }
+
+        create(matrix);
+    },false);
+    //右移动
+    var right = document.getElementById("right");
+    right.addEventListener("click",function () {
+        clearPre(matrix);
+        if(!collideTestX(1,matrix)){
+            x++;
+        }
+        create(matrix);
+    },false);
