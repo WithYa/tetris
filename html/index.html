@@ -8,19 +8,21 @@
 </head>
 <body>
     <header id="head" class="head" style="font-family:华康海报体W12;color: #c2ccd1;">俄罗斯方块</header>
+
     <section id="cbox" class="cbox">
         <div class="gamebox" id="gamebox">
-            <a href="game.html"><button class="play">PLAY</button></a>
+            <a href="game.html"><button class="play" >PLAY</button></a>
         </div>
     </section>
     <footer class="key">
         <ul class="lrbox">
-            <a href=""><li></li></a>
-            <a href=""><li></li></a>
-            <a href=""><li></li></a>
-            <a href=""><li></li></a>
-            <a href=""><li style="margin-right: 0"></li></a>
+            <li>
+                <input name="" type="button" value="开启音乐"  onclick="playPause()"/>
+                <audio id="audio1" width="10" >
+                    <source src="../bgm.mp3" type="audio/mp4" />
+                </audio>
         </ul>
     </footer>
 </body>
+<script type="text/javascript" src="../js/index.js"></script>
 </html>
